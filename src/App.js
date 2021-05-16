@@ -64,7 +64,8 @@ class App extends React.Component {
                                 <HomeOutlined style={{color: 'white', marginRight: '24px', fontSize: '18px'}}/>
                                 <span style={{
                                     color: 'white',
-                                    marginRight: '16px'
+                                    marginRight: '16px',
+                                    overflow: 'hidden'
                                 }}>
                   صفحه اصلی
                 </span>

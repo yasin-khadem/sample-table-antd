@@ -250,7 +250,7 @@ class TestList extends React.Component {
                 </strong>
             </span>
                 </div>
-                <Table columns={columns} dataSource={data} onChange={this.handleChange}/>
+                <Table columns={columns} dataSource={data} bordered onChange={this.handleChange}/>
             </Card>
         )
     }
