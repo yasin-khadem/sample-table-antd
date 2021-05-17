@@ -65,7 +65,7 @@ class App extends React.Component {
                                 <span style={{
                                     color: 'white',
                                     marginRight: '16px',
-                                    overflow: 'hidden'
+                                    overflow: 'scroll'
                                 }}>
                   صفحه اصلی
                 </span>

@@ -76,7 +76,7 @@ const data = [
         age: 32,
         logo: <Avatar size="large" icon={<UserOutlined/>}/>,
         address: '1/2-azmoon',
-        created_at:PN.convertEnToPe('09:00:52  1398/11/30'),
+        created_at: PN.convertEnToPe('09:00:52  1398/11/30'),
         timestamp: 1581053452,
         actions: <ActionsInTable/>,
         online: <Progress percent={0} status='active'/>,
@@ -121,14 +121,16 @@ class TestList extends React.Component {
                     <Button
                         type="primary"
                         onClick={() => this.handleSearch(selectedKeys, confirm, dataIndex)}
-                        icon={<SearchOutlined />}
+                        icon={<SearchOutlined/>}
                         size="small"
-                        style={{width: 90}}
+                        style={{width: 90, paddingBottom: '10px',paddingTop: '0px', paddingRight: '3px'}}
                     >
-                        Search
+                        <p style={{display:"inline"}}>
+                            جست و جو
+                        </p>
                     </Button>
                     <Button onClick={() => this.handleReset(clearFilters)} size="small" style={{width: 90}}>
-                        Reset
+                        ریست
                     </Button>
                     <Button
                         type="link"
@@ -141,7 +143,7 @@ class TestList extends React.Component {
                             });
                         }}
                     >
-                        Filter
+                        فیلتر
                     </Button>
                 </Space>
             </div>
