@@ -1,6 +1,5 @@
 .content-height{
     min-height: calc(100vh - 64px);
-    /*height: 100vh;*/
 }
 .background-content{
     background-color: #1f1f1f;
@@ -8,4 +7,5 @@
 .table-header{
     border-bottom: 1px solid #acacac;
     padding-bottom: 5px;
+    min-width: 100vh;
 }

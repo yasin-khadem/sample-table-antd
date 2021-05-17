@@ -1,107 +1,58 @@
-import {Table, Input, Button, Space, Avatar, Card, Tag, Progress} from 'antd';
+import {Table, Input, Button, Space, Avatar, Card, Tag, Progress, Row, Col, Modal, Form, InputNumber} from 'antd';
 import Highlighter from 'react-highlight-words';
-import {ProfileOutlined, SearchOutlined, UserOutlined} from '@ant-design/icons';
+import {ProfileOutlined, SearchOutlined, UserOutlined, PlusOutlined, UploadOutlined} from '@ant-design/icons';
 import React from "react";
 import PN from "persian-number";
-
+import moment from 'moment'
+import momentj from "moment-jalaali";
 import ActionsInTable from "./ActionsInTable";
 
-const data = [
-    {
-        key: '1',
-        name: 'John Brown',
-        age: 32,
-        logo: <Avatar size="large"
-                      src='https://karboom.io/storage/employers/logo_thumb/Ob9MbyafIafUYtQYa0ypHAwIzURnH1zZ9er7k3PH.png'/>,
-        created_at: PN.convertEnToPe('07:52:52 1400/02/01'),
-        timestamp: 1620357772,
-        address: 'class-1/4',
-        online: <Progress percent={0} status='active'/>,
-        actions: <ActionsInTable/>,
-        tag: <Tag style={{fontSize: '12px'}} color="error"><strong>بدون ضبط</strong></Tag>,
-    },
-    {
-        key: '2',
-        name: 'Joe Black',
-        age: 42,
-        logo: <Avatar size="large" icon={<UserOutlined/>}/>,
-        address: 'dr-university',
-        created_at: PN.convertEnToPe('08:12:50  1399/11/30'),
-        timestamp: 1613018570,
-        actions: <ActionsInTable/>,
-        online: <Progress percent={20} status='active'/>,
-        tag: <Tag style={{fontSize: '12px'}} color="processing"><strong>ضبط فوری</strong></Tag>
-    },
-    {
-        key: '3',
-        name: 'Jim Green',
-        age: 32,
-        logo: <Avatar size="large"
-                      src='https://media-exp1.licdn.com/dms/image/C4D0BAQEOo13_hCFylA/company-logo_200_200/0/1548337352822?e=2159024400&v=beta&t=7AholjoKLToFr1xxjkLamtU0gaaDjXUg3uraQKATrJk'/>,
-        address: 'hh-hakim',
-        created_at: PN.convertEnToPe('07:52:52  1400/8/30'),
-        timestamp: 1636604572,
-        actions: <ActionsInTable/>,
-        online: <Progress percent={10} status='active'/>,
-        tag: <Tag style={{fontSize: '12px'}} color="processing"><strong>ضبط فوری</strong></Tag>
-    },
-    {
-        key: '4',
-        name: 'Jim Red',
-        age: 32,
-        logo: <Avatar size="large" icon={<UserOutlined/>}/>,
-        address: 'farazaban',
-        created_at: PN.convertEnToPe('01:52:33  1399/8/30'),
-        timestamp: 1604701353,
-        actions: <ActionsInTable/>,
-        online: <Progress percent={5} status='active'/>,
-        tag: <Tag style={{fontSize: '12px'}} color="processing"><strong>ضبط فوری</strong></Tag>
-    },
-    {
-        key: '5',
-        name: 'Jim Red',
-        age: 32,
-        logo: <Avatar size="large"
-                      src='https://ketabmarkaz.com/c/18-category_default/%D8%A7%D9%86%D8%AA%D8%B4%D8%A7%D8%B1%D8%A7%D8%AA-%D9%85%D8%A8%D8%AA%DA%A9%D8%B1%D8%A7%D9%86.jpg'/>,
-        address: 'kish-college',
-        created_at: PN.convertEnToPe('11:52:52  1398/5/31'),
-        timestamp: 1565335372,
-        actions: <ActionsInTable/>,
-        online: <Progress percent={33} status='active'/>,
-        tag: <Tag style={{fontSize: '12px'}} color="processing"><strong>ضبط فوری</strong></Tag>
-    },
-    {
-        key: '6',
-        name: 'Jim Red',
-        age: 32,
-        logo: <Avatar size="large" icon={<UserOutlined/>}/>,
-        address: '1/2-azmoon',
-        created_at: PN.convertEnToPe('09:00:52  1398/11/30'),
-        timestamp: 1581053452,
-        actions: <ActionsInTable/>,
-        online: <Progress percent={0} status='active'/>,
-        tag: <Tag style={{fontSize: '12px'}} color="processing"><strong>ضبط فوری</strong></Tag>
-    },
-    {
-        key: '7',
-        name: 'Jim Red',
-        age: 32,
-        logo: <Avatar size="large" icon={<UserOutlined/>}/>,
-        address: 'test-azmoon',
-        created_at: PN.convertEnToPe('02:51:12  1400/1/31'),
-        timestamp: 1617229272,
-        actions: <ActionsInTable/>,
-        online: <Progress percent={50} status='active'/>,
-        tag: <Tag style={{fontSize: '12px'}} color="processing"><strong>ضبط فوری</strong></Tag>
-    },
-];
 
 class TestList extends React.Component {
+    cleanDate = (msec) => {
+        return PN.convertEnToPe(momentj(moment(msec).format("HH:mm:ss YYYY-MM-DD"),).format('HH:mm:ss jYYYY-jM-jD'))
+    }
     state = {
+        address: '',
+        logo: '',
+        online: 0,
         filteredInfo: '',
         sortedInfo: '',
         searchText: '',
         searchedColumn: '',
+        isCreateModalVisible: false,
+        data: []
+    };
+
+    
+    createModal = (values) => {
+        this.setState({
+            ...this.state, isCreateModalVisible: false, data: [...this.state.data, {
+                id: this.state.data.length + 1,
+                key: this.state.data.length + 1,
+                logo: <Avatar size="large" src={values.logo}/>,
+                address: values.address,
+                created_at: this.cleanDate(new Date().getTime()),
+                timestamp: new Date().getTime(),
+                actions: <ActionsInTable/>,
+                online: <Progress percent={values.online} status='active'/>,
+                tag: <Tag style={{fontSize: '12px'}} color="processing"><strong>ضبط فوری</strong></Tag>
+            }],
+            address: '',
+            logo: '',
+            online: 0
+        })
+    }
+    showCreateModal = () => {
+        this.setState({...this.state, isCreateModalVisible: true})
+    };
+
+    handleCreateOk = () => {
+        this.setState({...this.state, isCreateModalVisible: false})
+    };
+
+    handleCreateCancel = () => {
+        this.setState({...this.state, isCreateModalVisible: false})
     };
 
     getColumnSearchProps = dataIndex => ({
@@ -123,9 +74,9 @@ class TestList extends React.Component {
                         onClick={() => this.handleSearch(selectedKeys, confirm, dataIndex)}
                         icon={<SearchOutlined/>}
                         size="small"
-                        style={{width: 90, paddingBottom: '10px',paddingTop: '0px', paddingRight: '3px'}}
+                        style={{width: 90, paddingBottom: '10px', paddingTop: '0px', paddingRight: '3px'}}
                     >
-                        <p style={{display:"inline"}}>
+                        <p style={{display: "inline"}}>
                             جست و جو
                         </p>
                     </Button>
@@ -192,9 +143,9 @@ class TestList extends React.Component {
     };
 
     render() {
-        let {sortedInfo, filteredInfo} = this.state;
+        let {sortedInfo} = this.state;
         sortedInfo = sortedInfo || {};
-        filteredInfo = filteredInfo || {};
+
         const columns = [
             {
                 title: 'لوگو',
@@ -240,19 +191,54 @@ class TestList extends React.Component {
 
         ];
         return (
-            <Card style={{borderRadius: '10px', overflow: 'scroll'}}>
+            <Card style={{borderRadius: '10px', overflow: 'auto'}}>
                 <div className='table-header'>
-
-            <span>
-                <ProfileOutlined style={{fontSize: '16px'}}/>
-            </span>
-                    <span style={{marginRight: '8px', fontSize: '16px'}}>
-                <strong>
-                اشتراک
-                </strong>
-            </span>
+                    <Row justify='space-between'>
+                        <Col>
+                            <span><ProfileOutlined style={{fontSize: '16px'}}/></span>
+                            <span style={{marginRight: '8px', fontSize: '16px'}}><strong>اشتراک</strong></span>
+                        </Col>
+                        <Col>
+                            <Button shape="round" icon={<PlusOutlined/>} style={{
+                                marginRight: '8px',
+                                color: 'white',
+                                backgroundColor: '#389e0d'
+                            }} onClick={this.showCreateModal}>ایجاد</Button>
+                            <Modal destroyOnClose={true} title="ساخت آیتم جدید" visible={this.state.isCreateModalVisible}
+                                   onCancel={this.handleCreateCancel} footer={null}>
+                                <Form initialValues={{online: 0}} onFinish={this.createModal}>
+                                    <Form.Item name="logo" label="url لوگو">
+                                        <Input placeholder="آدرس اینترنتی لوگو"
+                                               />
+                                    </Form.Item>
+                                    <Form.Item name="address" label="آدرس" rules={[
+                                        {
+                                            required: true,
+                                            message: 'لطفا آدرس را وارد کنید',
+                                        },
+                                    ]}>
+                                        <Input placeholder="آدرس"/>
+                                    </Form.Item>
+                                    <Form.Item name="online" label="تعداد آنلاین" rules={[{
+                                        required: true,
+                                        message: 'لطفا مقدار عددی آنلاین را وارد کنید'
+                                    }]}>
+                                        <InputNumber />
+                                    </Form.Item>
+                                    <Form.Item>
+                                        <Button style={{marginLeft: '8px'}}
+                                                onClick={this.handleCreateCancel}>انصراف</Button>
+                                        <Button type="primary" htmlType="submit">ثبت</Button>
+                                    </Form.Item>
+                                </Form>
+                            </Modal>
+                            <Button shape="round" icon={<UploadOutlined style={{fontSize: '16px'}}/>}
+                                    style={{marginRight: '8px', color: 'white', backgroundColor: '#1890ff'}}>وارد
+                                کردن</Button>
+                        </Col>
+                    </Row>
                 </div>
-                <Table columns={columns} dataSource={data} bordered onChange={this.handleChange}/>
+                <Table columns={columns} dataSource={this.state.data} bordered onChange={this.handleChange}/>
             </Card>
         )
     }
