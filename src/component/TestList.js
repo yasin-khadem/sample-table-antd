@@ -1,11 +1,31 @@
-import {Table, Input, Button, Space, Avatar, Card, Tag, Progress, Row, Col, Modal, Form, InputNumber} from 'antd';
+import {
+    message,
+    Table,
+    Input,
+    Button,
+    Space,
+    Avatar,
+    Card,
+    Tag,
+    Progress,
+    Row,
+    Col,
+    Modal,
+    Form,
+    InputNumber,
+    Upload
+} from 'antd';
 import Highlighter from 'react-highlight-words';
-import {ProfileOutlined, SearchOutlined, UserOutlined, PlusOutlined, UploadOutlined} from '@ant-design/icons';
+import {ProfileOutlined, SearchOutlined, UserOutlined, PlusOutlined, UploadOutlined , CloudUploadOutlined} from '@ant-design/icons';
 import React from "react";
 import PN from "persian-number";
 import moment from 'moment'
 import momentj from "moment-jalaali";
 import ActionsInTable from "./ActionsInTable";
+
+const { convertCSVToArray } = require('convert-csv-to-array');
+const converter = require('convert-csv-to-array');
+
 
 
 class TestList extends React.Component {
@@ -13,6 +33,7 @@ class TestList extends React.Component {
         return PN.convertEnToPe(momentj(moment(msec).format("HH:mm:ss YYYY-MM-DD"),).format('HH:mm:ss jYYYY-jM-jD'))
     }
     state = {
+        file: null,
         address: '',
         logo: '',
         online: 0,
@@ -21,10 +42,11 @@ class TestList extends React.Component {
         searchText: '',
         searchedColumn: '',
         isCreateModalVisible: false,
+        isUploadModalVisible: false,
         data: []
     };
 
-    
+
     createModal = (values) => {
         this.setState({
             ...this.state, isCreateModalVisible: false, data: [...this.state.data, {
@@ -38,13 +60,14 @@ class TestList extends React.Component {
                 online: <Progress percent={values.online} status='active'/>,
                 tag: <Tag style={{fontSize: '12px'}} color="processing"><strong>ضبط فوری</strong></Tag>
             }],
-            address: '',
-            logo: '',
-            online: 0
         })
     }
+
     showCreateModal = () => {
         this.setState({...this.state, isCreateModalVisible: true})
+    };
+    showUploadModal = () => {
+        this.setState({...this.state, isUploadModalVisible: true})
     };
 
     handleCreateOk = () => {
@@ -53,6 +76,9 @@ class TestList extends React.Component {
 
     handleCreateCancel = () => {
         this.setState({...this.state, isCreateModalVisible: false})
+    };
+    handleUploadCancel = () => {
+        this.setState({...this.state, isUploadModalVisible: false})
     };
 
     getColumnSearchProps = dataIndex => ({
@@ -129,7 +155,20 @@ class TestList extends React.Component {
             searchedColumn: dataIndex,
         });
     };
+    loggingFile = () => {
+        const arrayofArrays = convertCSVToArray(this.state.file);
+        if(arrayofArrays[0].includes("logo")
+            && arrayofArrays[0].includes("address")
+            && arrayofArrays[0].includes("logo")){
+            for (let i = 1; i < arrayofArrays.length; i++){
+                this.createModal(arrayofArrays[i])
+            }
+        }else{
+            message.error(`اطلاعات فایل csv شما با الگو مطابقت ندارد`);
+        }
 
+        this.setState({...this.state,isUploadModalVisible:false})
+    }
     handleReset = clearFilters => {
         clearFilters();
         this.setState({searchText: ''});
@@ -204,26 +243,25 @@ class TestList extends React.Component {
                                 color: 'white',
                                 backgroundColor: '#389e0d'
                             }} onClick={this.showCreateModal}>ایجاد</Button>
-                            <Modal destroyOnClose={true} title="ساخت آیتم جدید" visible={this.state.isCreateModalVisible}
+                            <Modal destroyOnClose={true} title="ساخت آیتم جدید"
+                                   visible={this.state.isCreateModalVisible}
                                    onCancel={this.handleCreateCancel} footer={null}>
                                 <Form initialValues={{online: 0}} onFinish={this.createModal}>
-                                    <Form.Item name="logo" label="url لوگو">
-                                        <Input placeholder="آدرس اینترنتی لوگو"
-                                               />
+                                        <label ><strong>url برای لوگو:</strong></label>
+                                    <Form.Item name="logo">
+                                        <Input style={{marginTop: "5px"}} placeholder="آدرس اینترنتی لوگو (اختیاری)"/>
                                     </Form.Item>
-                                    <Form.Item name="address" label="آدرس" rules={[
-                                        {
-                                            required: true,
-                                            message: 'لطفا آدرس را وارد کنید',
-                                        },
+                                        <label ><strong>آدرس:</strong></label>
+                                    <Form.Item name="address" rules={[{required: true, message: 'لطفا آدرس را وارد کنید'},
                                     ]}>
-                                        <Input placeholder="آدرس"/>
+                                        <Input style={{marginTop: "5px"}} placeholder="آدرس"/>
                                     </Form.Item>
-                                    <Form.Item name="online" label="تعداد آنلاین" rules={[{
+                                        <label><strong>تعداد آنلاین: (پیش فرض صفر)</strong></label>
+                                    <Form.Item name="online" rules={[{
                                         required: true,
                                         message: 'لطفا مقدار عددی آنلاین را وارد کنید'
                                     }]}>
-                                        <InputNumber />
+                                        <InputNumber style={{marginTop: "5px"}}/>
                                     </Form.Item>
                                     <Form.Item>
                                         <Button style={{marginLeft: '8px'}}
@@ -232,9 +270,31 @@ class TestList extends React.Component {
                                     </Form.Item>
                                 </Form>
                             </Modal>
-                            <Button shape="round" icon={<UploadOutlined style={{fontSize: '16px'}}/>}
+                            <Button onClick={this.showUploadModal} shape="round"
+                                    icon={<UploadOutlined style={{fontSize: '16px'}}/>}
                                     style={{marginRight: '8px', color: 'white', backgroundColor: '#1890ff'}}>وارد
                                 کردن</Button>
+                            <Modal destroyOnClose={true} title="ایجاد آیتم با آپلود اطلاعات"
+                                   visible={this.state.isUploadModalVisible}
+                                   onCancel={this.handleUploadCancel} footer={[null]}>
+                                <Upload
+                                    accept='.csv'
+                                    action='https://www.mocky.io/v2/5cc8019d300000980a055e76'
+                                    beforeUpload={file => {
+                                        const reader = new FileReader();
+                                        reader.readAsBinaryString(file);
+                                        reader.onloadend = e => {
+                                            this.setState({...this.state,file :e.target.result})
+                                            this.loggingFile();
+                                        }
+                                        return false;
+                                    }}
+                                >
+                                    <Button>
+                                        <CloudUploadOutlined type="upload" style={{fontSize: '16px'}}/>فایل csv خود را اینجا آپلود کنید
+                                    </Button>
+                                </Upload>
+                            </Modal>
                         </Col>
                     </Row>
                 </div>
