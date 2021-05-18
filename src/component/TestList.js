@@ -214,7 +214,11 @@ class TestList extends React.Component {
         });
     };
     createByCSV = () => {
-        const arrayofArrays = convertCSVToArray(this.state.file);
+        const arrayofArrays = convertCSVToArray(this.state.file, {
+            separator: ',', // use the separator you use in your csv (e.g. '\t', ',', ';' ...)
+        });
+        // console.log(arrayofArrays)
+        // console.log(arrayofArrays[0])
         if (arrayofArrays[0].includes("logo")
             && arrayofArrays[0].includes("address")
             && arrayofArrays[0].includes("logo")) {
@@ -338,11 +342,11 @@ class TestList extends React.Component {
                                    visible={this.state.isUploadModalVisible}
                                    onCancel={this.handleUploadCancel} footer={[null]}>
                                 <Upload
-                                    accept='.csv'
+                                    accept='.csv,.txt'
                                     action='https://www.mocky.io/v2/5cc8019d300000980a055e76'
                                     beforeUpload={file => {
                                         const reader = new FileReader();
-                                        reader.readAsBinaryString(file);
+                                        reader.readAsText(file);
                                         reader.onloadend = e => {
                                             this.setState({...this.state, file: e.target.result})
                                             this.createByCSV();
