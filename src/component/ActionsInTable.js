@@ -2,13 +2,15 @@ import {Button, Row} from "antd";
 import {DeleteOutlined, EditOutlined, EyeOutlined} from "@ant-design/icons";
 import React from "react";
 
-const ActionsInTable = () => {
+const ActionsInTable = (props) => {
+
     return (
         <>
             <Row>
                 <Button style={{backgroundColor: '#10239e'}} shape="circle"
                         icon={<EyeOutlined style={{color: 'white'}}/>}/>
-                <Button style={{backgroundColor: '#fa8c16', marginRight: '5px'}} shape="circle"
+                <Button style={{backgroundColor: '#fa8c16', marginRight: '5px'}}
+                        onClick={()=>props.showUpdateModal(props.id,props.timestamp)} shape="circle"
                         icon={<EditOutlined style={{color: 'white'}}/>}/>
                 <Button danger style={{marginRight: '5px'}} shape="circle" icon={<DeleteOutlined/>}/>
                 <Button shape="round" style={{marginRight: '8px'}}>اتاق ها</Button>

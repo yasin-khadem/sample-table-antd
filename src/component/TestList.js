@@ -16,16 +16,22 @@ import {
     Upload
 } from 'antd';
 import Highlighter from 'react-highlight-words';
-import {ProfileOutlined, SearchOutlined, UserOutlined, PlusOutlined, UploadOutlined , CloudUploadOutlined} from '@ant-design/icons';
+import {
+    ProfileOutlined,
+    SearchOutlined,
+    UserOutlined,
+    PlusOutlined,
+    UploadOutlined,
+    CloudUploadOutlined
+} from '@ant-design/icons';
 import React from "react";
 import PN from "persian-number";
 import moment from 'moment'
 import momentj from "moment-jalaali";
 import ActionsInTable from "./ActionsInTable";
 
-const { convertCSVToArray } = require('convert-csv-to-array');
+const {convertCSVToArray} = require('convert-csv-to-array');
 const converter = require('convert-csv-to-array');
-
 
 
 class TestList extends React.Component {
@@ -33,6 +39,7 @@ class TestList extends React.Component {
         return PN.convertEnToPe(momentj(moment(msec).format("HH:mm:ss YYYY-MM-DD"),).format('HH:mm:ss jYYYY-jM-jD'))
     }
     state = {
+        tempFileForUpdate: {},
         file: null,
         address: '',
         logo: '',
@@ -43,25 +50,73 @@ class TestList extends React.Component {
         searchedColumn: '',
         isCreateModalVisible: false,
         isUploadModalVisible: false,
-        data: []
+        isUpdateModalVisible: false,
+        data: [],
     };
 
 
     createModal = (values) => {
         this.setState({
-            ...this.state, isCreateModalVisible: false, data: [...this.state.data, {
+            ...this.state, isCreateModalVisible: false,
+            data: [...this.state.data, {
+                tempData: {...values},
                 id: this.state.data.length + 1,
                 key: this.state.data.length + 1,
                 logo: <Avatar size="large" src={values.logo}/>,
                 address: values.address,
                 created_at: this.cleanDate(new Date().getTime()),
                 timestamp: new Date().getTime(),
-                actions: <ActionsInTable/>,
-                online: <Progress percent={values.online} status='active'/>,
+                actions: <ActionsInTable id={this.state.data.length + 1} timestamp={new Date().getTime()}
+                                         showUpdateModal={this.showUpdateModal}/>,
+                online: <div>
+                    <span>{values.online}</span>
+                    <Progress percent={values.online} status='active'/>
+                </div>
+                ,
                 tag: <Tag style={{fontSize: '12px'}} color="processing"><strong>ضبط فوری</strong></Tag>
             }],
         })
     }
+    showUpdateModal = (id, timestamp) => {
+        let item = this.state.data.filter((item, index) => {
+            if (item.id === id) {
+                return item;
+            }
+        })
+
+        this.setState({
+            ...this.state,
+            tempFileForUpdate: {...item[0].tempData, id, timestamp},
+            isUpdateModalVisible: true
+        })
+    }
+    updateModal = (values) => {
+        let {id, timestamp} = this.state.tempFileForUpdate
+        this.setState({
+            ...this.state, isUpdateModalVisible: false,
+            data: [...this.state.data.filter(item => {
+                if (item.id !== id) {
+                    return item
+                }
+            }), {
+                tempData: {...values},
+                id: id,
+                key: id,
+                logo: <Avatar size="large" src={values.logo}/>,
+                address: values.address,
+                created_at: this.cleanDate(timestamp),
+                timestamp: timestamp,
+                actions: <ActionsInTable id={id} timestamp={timestamp} showUpdateModal={this.showUpdateModal}/>,
+                online: <div>
+                    <span>{values.online}</span>
+                    <Progress percent={values.online} status='active'/>
+                </div>
+                ,
+                tag: <Tag style={{fontSize: '12px'}} color="processing"><strong>ضبط فوری</strong></Tag>
+            }],
+        })
+    }
+
 
     showCreateModal = () => {
         this.setState({...this.state, isCreateModalVisible: true})
@@ -80,6 +135,9 @@ class TestList extends React.Component {
     handleUploadCancel = () => {
         this.setState({...this.state, isUploadModalVisible: false})
     };
+    handleUpdateCancel = () => {
+        this.setState({...this.state, isUpdateModalVisible: false})
+    }
 
     getColumnSearchProps = dataIndex => ({
         filterDropdown: ({setSelectedKeys, selectedKeys, confirm, clearFilters}) => (
@@ -155,19 +213,19 @@ class TestList extends React.Component {
             searchedColumn: dataIndex,
         });
     };
-    loggingFile = () => {
+    createByCSV = () => {
         const arrayofArrays = convertCSVToArray(this.state.file);
-        if(arrayofArrays[0].includes("logo")
+        if (arrayofArrays[0].includes("logo")
             && arrayofArrays[0].includes("address")
-            && arrayofArrays[0].includes("logo")){
-            for (let i = 1; i < arrayofArrays.length; i++){
+            && arrayofArrays[0].includes("logo")) {
+            for (let i = 1; i < arrayofArrays.length; i++) {
                 this.createModal(arrayofArrays[i])
             }
-        }else{
+        } else {
             message.error(`اطلاعات فایل csv شما با الگو مطابقت ندارد`);
         }
 
-        this.setState({...this.state,isUploadModalVisible:false})
+        this.setState({...this.state, isUploadModalVisible: false})
     }
     handleReset = clearFilters => {
         clearFilters();
@@ -243,20 +301,22 @@ class TestList extends React.Component {
                                 color: 'white',
                                 backgroundColor: '#389e0d'
                             }} onClick={this.showCreateModal}>ایجاد</Button>
+
                             <Modal destroyOnClose={true} title="ساخت آیتم جدید"
                                    visible={this.state.isCreateModalVisible}
                                    onCancel={this.handleCreateCancel} footer={null}>
                                 <Form initialValues={{online: 0}} onFinish={this.createModal}>
-                                        <label ><strong>url برای لوگو:</strong></label>
+                                    <label><strong>url برای لوگو:</strong></label>
                                     <Form.Item name="logo">
                                         <Input style={{marginTop: "5px"}} placeholder="آدرس اینترنتی لوگو (اختیاری)"/>
                                     </Form.Item>
-                                        <label ><strong>آدرس:</strong></label>
-                                    <Form.Item name="address" rules={[{required: true, message: 'لطفا آدرس را وارد کنید'},
-                                    ]}>
+                                    <label><strong>آدرس:</strong></label>
+                                    <Form.Item name="address"
+                                               rules={[{required: true, message: 'لطفا آدرس را وارد کنید'},
+                                               ]}>
                                         <Input style={{marginTop: "5px"}} placeholder="آدرس"/>
                                     </Form.Item>
-                                        <label><strong>تعداد آنلاین: (پیش فرض صفر)</strong></label>
+                                    <label><strong>تعداد آنلاین: (پیش فرض صفر)</strong></label>
                                     <Form.Item name="online" rules={[{
                                         required: true,
                                         message: 'لطفا مقدار عددی آنلاین را وارد کنید'
@@ -284,16 +344,51 @@ class TestList extends React.Component {
                                         const reader = new FileReader();
                                         reader.readAsBinaryString(file);
                                         reader.onloadend = e => {
-                                            this.setState({...this.state,file :e.target.result})
-                                            this.loggingFile();
+                                            this.setState({...this.state, file: e.target.result})
+                                            this.createByCSV();
                                         }
                                         return false;
                                     }}
                                 >
                                     <Button>
-                                        <CloudUploadOutlined type="upload" style={{fontSize: '16px'}}/>فایل csv خود را اینجا آپلود کنید
+                                        <CloudUploadOutlined type="upload" style={{fontSize: '16px'}}/>فایل csv خود را
+                                        اینجا آپلود کنید
                                     </Button>
                                 </Upload>
+                            </Modal>
+
+
+                            <Modal destroyOnClose={true} title="بروزرسانی آیتم"
+                                   visible={this.state.isUpdateModalVisible}
+                                   onCancel={this.handleUpdateCancel} footer={null}>
+                                <Form initialValues={{
+                                    logo: this.state.tempFileForUpdate.logo,
+                                    address: this.state.tempFileForUpdate.address,
+                                    online: this.state.tempFileForUpdate.online,
+                                }} onFinish={this.updateModal}>
+                                    <label><strong>url برای لوگو:</strong></label>
+                                    <Form.Item name="logo">
+                                        <Input style={{marginTop: "5px"}} placeholder="آدرس اینترنتی لوگو (اختیاری)"/>
+                                    </Form.Item>
+                                    <label><strong>آدرس:</strong></label>
+                                    <Form.Item name="address"
+                                               rules={[{required: true, message: 'لطفا آدرس را وارد کنید'},
+                                               ]}>
+                                        <Input style={{marginTop: "5px"}} placeholder="آدرس"/>
+                                    </Form.Item>
+                                    <label><strong>تعداد آنلاین: (پیش فرض صفر)</strong></label>
+                                    <Form.Item name="online" rules={[{
+                                        required: true,
+                                        message: 'لطفا مقدار عددی آنلاین را وارد کنید'
+                                    }]}>
+                                        <InputNumber style={{marginTop: "5px"}}/>
+                                    </Form.Item>
+                                    <Form.Item>
+                                        <Button style={{marginLeft: '8px'}}
+                                                onClick={this.handleUpdateCancel}>انصراف</Button>
+                                        <Button type="primary" htmlType="submit">ویرایش</Button>
+                                    </Form.Item>
+                                </Form>
                             </Modal>
                         </Col>
                     </Row>
